@@ -5,15 +5,26 @@ const c = @cImport({
 
 pub fn main() !void {
     var options = c.rocksdb_options_create();
-    c.rocksdb_options_optimize_level_style_compaction(options, 0);
-    // create the DB if it's not already present
+    // Recommended settings from https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning#other-general-options
+    c.rocksdb_options_set_max_background_jobs(options, 6);
+    c.rocksdb_options_set_bytes_per_sync(options, 1048576);
+
     c.rocksdb_options_set_create_if_missing(options, 1);
 
-    std.fs.cwd().makeDir("simple_example_db") catch {};
+    c.rocksdb_create_column_families;
 
-    std.debug.print("opening db\n", .{});
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var path_buf = [1]u8{0} ** std.fs.MAX_PATH_BYTES;
+    const tmp_path = try std.os.getFdPath(tmp.dir.fd, &path_buf);
+    // make tmp_path zero terminated
+    path_buf[tmp_path.len] = 0;
+    const tmp_path_zero_terminated = path_buf[0..tmp_path.len :0];
+
+    std.debug.print("opening db {s}\n", .{tmp_path});
     var err: ?[*:0]u8 = null;
-    const db = c.rocksdb_open(options, "./simple_example_db", &err);
+    const db = c.rocksdb_open(options, tmp_path_zero_terminated, &err);
     assertNoErr(err);
     defer c.rocksdb_close(db);
 
