@@ -4,15 +4,6 @@ const c = @cImport({
 });
 
 pub fn main() !void {
-    var options = c.rocksdb_options_create();
-    // Recommended settings from https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning#other-general-options
-    c.rocksdb_options_set_max_background_jobs(options, 6);
-    c.rocksdb_options_set_bytes_per_sync(options, 1048576);
-
-    c.rocksdb_options_set_create_if_missing(options, 1);
-
-    c.rocksdb_create_column_families;
-
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
@@ -23,10 +14,21 @@ pub fn main() !void {
     const tmp_path_zero_terminated = path_buf[0..tmp_path.len :0];
 
     std.debug.print("opening db {s}\n", .{tmp_path});
+
+    var db_options = c.rocksdb_options_create();
+    // Recommended settings from https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning#other-general-options
+    c.rocksdb_options_set_max_background_jobs(db_options, 6);
+    c.rocksdb_options_set_bytes_per_sync(db_options, 1048576);
+
+    c.rocksdb_options_set_create_if_missing(db_options, 1);
     var err: ?[*:0]u8 = null;
-    const db = c.rocksdb_open(options, tmp_path_zero_terminated, &err);
+    const db = c.rocksdb_open(db_options, tmp_path_zero_terminated, &err);
     assertNoErr(err);
     defer c.rocksdb_close(db);
+
+    var col_family_opts = db_options;
+    c.rocksdb_options_set_comparator(col_family_opts, c.rocksdb_bytewise_comparator_with_u64_ts());
+    // c.rocksdb_create_column_families;
 
     std.debug.print("writing to db\n", .{});
     const writeoptions = c.rocksdb_writeoptions_create();

@@ -8,8 +8,8 @@
     },
     .dependencies = .{
         .zig_rocksdb = .{
-            .url = "https://github.com/ilmaria/zig-rocksdb/archive/8010c4b3f20b78cb69bd8fbe7ce580d511881178.tar.gz",
-            .hash = "1220c03559a43f56068bf7b3dc986b74f9a437a094975394e1b90b54b3066aebad96",
+            .url = "https://github.com/ilmaria/zig-rocksdb/archive/551cff005a9b85ff270d6bcc3f424c858a629fcb.tar.gz",
+            .hash = "12201bb01bf8ef4289bb091859f8a42f948f360ba3bb1a1eafc3308088720a077f11",
         },
     },
 }
