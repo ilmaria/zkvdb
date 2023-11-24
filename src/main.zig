@@ -26,9 +26,20 @@ pub fn main() !void {
     assertNoErr(err);
     defer c.rocksdb_close(db);
 
-    var col_family_opts = db_options;
+    var col_family_opts = c.rocksdb_options_create();
     c.rocksdb_options_set_comparator(col_family_opts, c.rocksdb_bytewise_comparator_with_u64_ts());
-    // c.rocksdb_create_column_families;
+    var names = [_][*]const u8{ "eav".ptr, "aev".ptr, "ave".ptr, "vae".ptr };
+    var name_lengths = [_]usize{ "eav".len, "aev".len, "ave".len, "vae".len };
+    const col_family_handles = c.rocksdb_create_column_families(
+        db,
+        col_family_opts,
+        4,
+        &names,
+        &name_lengths,
+        &err,
+    );
+    _ = col_family_handles;
+    assertNoErr(err);
 
     std.debug.print("writing to db\n", .{});
     const writeoptions = c.rocksdb_writeoptions_create();
